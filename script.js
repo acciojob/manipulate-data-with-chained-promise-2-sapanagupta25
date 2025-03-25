@@ -1,22 +1,34 @@
-//your JS code here. If required.
-describe('Chained Promises Test', () => {
-  beforeEach(() => {
-    cy.visit('/main.html'); // Ensure correct base URL
-    cy.clock(); // Control the timer
-  });
+const output = document.getElementById("output");
 
-  it('should display the correct sequence of values', () => {
-    cy.get('#output').should('contain', ''); // Initially empty
-
-    // Trigger the first promise after 3 seconds
-    cy.tick(3000);
-    
-    // After 1 second, it should show filtered even numbers
-    cy.tick(1000);
-    cy.get('#output').should('contain', '2,4');
-
-    // After an additional 2 seconds, it should show multiplied numbers
-    cy.tick(2000);
-    cy.get('#output').should('contain', '4,8');
-  });
+// Step 1: Initial Promise that resolves after 3-second delay
+const initialPromise = new Promise((resolve) => {
+  setTimeout(() => {
+    resolve([1, 2, 3, 4]);
+  }, 3000);
 });
+
+initialPromise
+  .then((array) => {
+    // Step 2a: Filter out odd numbers after 1 second
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const evenNumbers = array.filter((num) => num % 2 === 0);
+        output.textContent = evenNumbers.join(", "); // Display result
+        resolve(evenNumbers);
+      }, 1000);
+    });
+  })
+  .then((evenNumbers) => {
+    // Step 2b: Multiply even numbers by 2 after 2 seconds
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const multipliedNumbers = evenNumbers.map((num) => num * 2);
+        output.textContent = multipliedNumbers.join(", "); // Update result
+        resolve(multipliedNumbers);
+      }, 2000);
+    });
+  })
+  .catch((error) => {
+    console.error("Error:", error);
+  });
+
